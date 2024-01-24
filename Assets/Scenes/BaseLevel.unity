@@ -154,8 +154,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29f82a1f8da65d34798161b2c74b1ba7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  xSpeed: 0
-  ySpeed: 0
+  xSpeed: 25
+  ySpeed: 25
+  zoomSpeed: 500
 --- !u!81 &136694277
 AudioListener:
   m_ObjectHideFlags: 0
@@ -242,7 +243,6 @@ GameObject:
   - component: {fileID: 326997581}
   - component: {fileID: 326997580}
   - component: {fileID: 326997579}
-  - component: {fileID: 326997578}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -250,18 +250,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &326997578
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 326997577}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c7cff4fe23b0cf84097ea3007354af38, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!65 &326997579
 BoxCollider:
   m_ObjectHideFlags: 0
