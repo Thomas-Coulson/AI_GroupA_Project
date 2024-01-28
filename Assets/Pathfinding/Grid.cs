@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class Grid : MonoBehaviour
@@ -11,6 +12,8 @@ public class Grid : MonoBehaviour
     public LayerMask m_unwalkableMask;
 
     int m_gridSizeX, m_gridSizeY;
+
+    public List<Node> m_path;
 
     private void Start()
     {
@@ -37,7 +40,7 @@ public class Grid : MonoBehaviour
                 bool walkable = !(Physics.CheckSphere(currentWorldPos, m_nodeSize, m_unwalkableMask));
 
                 //add node to grid
-                m_grid[x, y] = new Node(walkable, currentWorldPos);
+                m_grid[x, y] = new Node(walkable, currentWorldPos, x, y);
             }
         }
     }
@@ -58,6 +61,34 @@ public class Grid : MonoBehaviour
         return m_grid[x, y];
     }
 
+    public List<Node> GetNeighbours(Node node)
+    {
+        List<Node> neighbours = new List<Node>();
+
+        //search in a 3x3 grid (node is at 0, 0)
+        for(int x = -1; x <= 1; x++)
+        {
+            for (int y = -1; y <= 1; y++)
+            {
+                if(x == 0 && y == 0)
+                {
+                    continue;//dont check node against itself
+                }
+
+                //current neighbour we are checking
+                int checkX = node.m_gridX + x;
+                int checkY = node.m_gridY + y;
+
+                //if the neighbour is within the grid, add to list
+                if((checkX >= 0 && checkX < m_gridSizeX) && (checkY >= 0 && checkY < m_gridSizeY))
+                {
+                    neighbours.Add(m_grid[checkX, checkY]);
+                }
+            }
+        }
+
+        return neighbours;
+    }
 
     private void OnDrawGizmos()
     {
@@ -68,6 +99,15 @@ public class Grid : MonoBehaviour
             foreach(Node node in m_grid)
             {
                 Gizmos.color = node.m_walkable ? Color.white : Color.red;
+
+                if(m_path != null)
+                {
+                    if(m_path.Contains(node))
+                    {
+                        Gizmos.color = Color.black;
+                    }
+                }
+
                 Gizmos.DrawCube(node.m_worldPos, Vector3.one * (m_nodeSize * 2 - .05f));
             }
         }
