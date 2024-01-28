@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Pathfinding/AStarPathfinding.cs.meta
 guid: 274e7168c4db811478e99c034f698416
+========
+guid: 22dabac249f818848a4631119ac97a19
+>>>>>>>> main:Assets/Pathfinding/Grid.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
