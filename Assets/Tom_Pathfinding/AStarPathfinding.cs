@@ -5,8 +5,6 @@ using UnityEngine;
 public class AStarPathfinding : MonoBehaviour
 {
 
-    //public Transform m_seeker, m_target;
-
     Grid m_grid;
 
     private void Awake()
@@ -14,64 +12,72 @@ public class AStarPathfinding : MonoBehaviour
         m_grid = GetComponent<Grid>();
     }
 
-    //void Update()
-    //{
-    //    FindPath(m_seeker.position, m_target.position);
-    //}
-
-    public List<Node> StartPathfinding(Vector3 startPos, Vector3 targetPos)
+    public Vector3[] StartPathfinding(Vector3 startPos, Vector3 targetPos)
     {
         return FindPath(startPos, targetPos);
     }
 
-    List<Node> FindPath(Vector3 startPos, Vector3 targetPos)
+    Vector3[] FindPath(Vector3 startPos, Vector3 targetPos)
     {
+        Vector3[] waypoints = new Vector3[0];
+        bool pathSucess = false;
+
         Node startNode = m_grid.GridPosFromWorld(startPos);
         Node targetNode = m_grid.GridPosFromWorld(targetPos);
 
-        //make storage for open and closed nodes
-        List<Node> openSet = new List<Node>();
-        HashSet<Node> closedSet = new HashSet<Node>();
-        openSet.Add(startNode); //add start node to open set
-
-        while (openSet.Count > 0)//loop while there are open nodes
+        if(startNode.m_walkable && targetNode.m_walkable)
         {
-            Node currentNode = NonOptimisedNodeSearch(openSet);//non Optimised version of node search
+            //make storage for open and closed nodes
+            List<Node> openSet = new List<Node>();
+            HashSet<Node> closedSet = new HashSet<Node>();
+            openSet.Add(startNode); //add start node to open set
 
-            //set current node to closed
-            openSet.Remove(currentNode);
-            closedSet.Add(currentNode);
-
-            if(currentNode == targetNode)
+            while (openSet.Count > 0)//loop while there are open nodes
             {
-                TracePath(startNode, targetNode);
-                return m_grid.m_path;//path found
-            }
+                Node currentNode = NonOptimisedNodeSearch(openSet);//non Optimised version of node search
 
-            foreach(Node neighbour in m_grid.GetNeighbours(currentNode))
-            {
-                //ignore node is not walkable or is closed
-                if(!neighbour.m_walkable ||  closedSet.Contains(neighbour))
+                //set current node to closed
+                openSet.Remove(currentNode);
+                closedSet.Add(currentNode);
+
+                if (currentNode == targetNode)
                 {
-                    continue;
+                    pathSucess = true;
+                    break;
                 }
 
-                //if this neighbour has a lower g cost, or is not open yet, move to it (set new g cost, and open it)
-                int newCostToNeighbour = currentNode.m_gCost + DistanceBetweenNodes(currentNode, neighbour);
-                if(newCostToNeighbour < neighbour.m_gCost || !openSet.Contains(neighbour))
+                foreach (Node neighbour in m_grid.GetNeighbours(currentNode))
                 {
-                    neighbour.m_gCost = newCostToNeighbour;
-                    neighbour.m_hCost = DistanceBetweenNodes(neighbour, targetNode);
-                    neighbour.m_parent = currentNode;
-                    
-                    if(!openSet.Contains(neighbour))
+                    //ignore node is not walkable or is closed
+                    if (!neighbour.m_walkable || closedSet.Contains(neighbour))
                     {
-                        openSet.Add(neighbour);
+                        continue;
+                    }
+
+                    //if this neighbour has a lower g cost, or is not open yet, move to it (set new g cost, and open it)
+                    int newCostToNeighbour = currentNode.m_gCost + DistanceBetweenNodes(currentNode, neighbour);
+                    if (newCostToNeighbour < neighbour.m_gCost || !openSet.Contains(neighbour))
+                    {
+                        neighbour.m_gCost = newCostToNeighbour;
+                        neighbour.m_hCost = DistanceBetweenNodes(neighbour, targetNode);
+                        neighbour.m_parent = currentNode;
+
+                        if (!openSet.Contains(neighbour))
+                        {
+                            openSet.Add(neighbour);
+                        }
                     }
                 }
             }
         }
-        return null;
+
+        if(pathSucess)
+        {
+            waypoints = TracePath(startNode, targetNode);
+            return waypoints;
+        }
+
+        return new Vector3[0];
     }
 
     Node NonOptimisedNodeSearch(List<Node> openSet)
@@ -110,7 +116,7 @@ public class AStarPathfinding : MonoBehaviour
     }
 
 
-    void TracePath(Node startNode, Node endNode)
+    Vector3[] TracePath(Node startNode, Node endNode)
     {
         //start at the end node
         List<Node> path = new List<Node>();
@@ -127,5 +133,14 @@ public class AStarPathfinding : MonoBehaviour
         path.Reverse();
 
         m_grid.m_path = path;
+
+        //temp code to be improved later
+        List<Vector3> waypoints = new List<Vector3>();
+        foreach (Node node in path)
+        {
+            waypoints.Add(node.m_worldPos);
+        }
+
+        return waypoints.ToArray();
     }
 }

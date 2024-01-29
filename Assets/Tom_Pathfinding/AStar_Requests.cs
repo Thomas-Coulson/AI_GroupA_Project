@@ -9,11 +9,12 @@ public class AStar_Requests : MonoBehaviour
 
     private void Awake()
     {
+        instance = this;
         m_aStar = GetComponent<AStarPathfinding>();
     }
 
     //static function so it can be called from player
-    public static List<Node> RequestPath(Vector3 startPos, Vector3 targetPos)
+    public static Vector3[] RequestPath(Vector3 startPos, Vector3 targetPos)
     {
         return instance.m_aStar.StartPathfinding(startPos, targetPos);
     }
