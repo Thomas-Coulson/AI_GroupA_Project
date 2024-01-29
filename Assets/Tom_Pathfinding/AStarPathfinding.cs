@@ -5,7 +5,7 @@ using UnityEngine;
 public class AStarPathfinding : MonoBehaviour
 {
 
-    public Transform m_seeker, m_target;
+    //public Transform m_seeker, m_target;
 
     Grid m_grid;
 
@@ -14,12 +14,17 @@ public class AStarPathfinding : MonoBehaviour
         m_grid = GetComponent<Grid>();
     }
 
-    void Update()
+    //void Update()
+    //{
+    //    FindPath(m_seeker.position, m_target.position);
+    //}
+
+    public List<Node> StartPathfinding(Vector3 startPos, Vector3 targetPos)
     {
-        FindPath(m_seeker.position, m_target.position);
+        return FindPath(startPos, targetPos);
     }
 
-    void FindPath(Vector3 startPos, Vector3 targetPos)
+    List<Node> FindPath(Vector3 startPos, Vector3 targetPos)
     {
         Node startNode = m_grid.GridPosFromWorld(startPos);
         Node targetNode = m_grid.GridPosFromWorld(targetPos);
@@ -40,7 +45,7 @@ public class AStarPathfinding : MonoBehaviour
             if(currentNode == targetNode)
             {
                 TracePath(startNode, targetNode);
-                return;//path found
+                return m_grid.m_path;//path found
             }
 
             foreach(Node neighbour in m_grid.GetNeighbours(currentNode))
@@ -66,6 +71,7 @@ public class AStarPathfinding : MonoBehaviour
                 }
             }
         }
+        return null;
     }
 
     Node NonOptimisedNodeSearch(List<Node> openSet)
