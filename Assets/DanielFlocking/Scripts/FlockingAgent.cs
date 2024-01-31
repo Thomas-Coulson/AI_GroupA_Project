@@ -5,30 +5,40 @@ using UnityEngine;
 public class FlockingAgent : MonoBehaviour
 {
     [SerializeField] float m_speed;
-    Vector3 m_velocity;
+    Vector2 m_velocity;
+    Vector3 m_translatedVelocity;
     [SerializeField] float m_awarenessRadius;
     int m_id = 0;
     // Start is called before the first frame update
     void Start()
     {
-        m_velocity = new Vector3 (Random.Range(-1.0f, 1.0f), 0, Random.Range(-1.0f, 1.0f));
+        m_velocity = new Vector2 (Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f));
         m_velocity.Normalize();
     }
 
     // Update is called once per frame
     void Update()
     {
-        gameObject.transform.position += m_velocity * m_speed * Time.deltaTime;
+        m_translatedVelocity.x = m_velocity.x;
+        m_translatedVelocity.z = m_velocity.y;
+        gameObject.transform.position += m_translatedVelocity * m_speed * Time.deltaTime;
+        //gameObject.transform.rotation = Quaternion.LookRotation(gameObject.transform.position + m_translatedVelocity);
+        transform.LookAt(gameObject.transform.position + m_translatedVelocity);
     }
 
-    public Vector3 GetVelocity() 
+    public Vector2 GetVelocity() 
     {
         return m_velocity;
     }
 
-    public void SetVelocity(Vector3 velocity) 
+    public void SetVelocity(Vector2 velocity) 
     {
         m_velocity = velocity;
+    }
+
+    public Vector2 GetV2Position() 
+    {
+        return new Vector2(transform.position.x, transform.position.z);
     }
 
     public float GetAwarenessRadius() 
