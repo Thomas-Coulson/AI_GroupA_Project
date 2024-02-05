@@ -38,7 +38,7 @@ public class Heap<T> where T : IHeapItem<T>//  -----CURENTLY SOMETHING WRONG HER
         return firstItem;
     }
 
-    public void Update(T item)
+    public void UpdateItem(T item)
     { 
         SortUp(item); //with pathfinding, we only ever increase priority
     }
@@ -63,6 +63,8 @@ public class Heap<T> where T : IHeapItem<T>//  -----CURENTLY SOMETHING WRONG HER
             {
                 break;
             }
+
+            parentIndex = (item.HeapIndex - 1) / 2;
         }
     }
 
@@ -70,11 +72,11 @@ public class Heap<T> where T : IHeapItem<T>//  -----CURENTLY SOMETHING WRONG HER
     {
         while(true)
         {
-            int childIndexLeft = item.HeapIndex * 2 + 1; //formula for finding left child node in heap
-            int childIndexRight = item.HeapIndex * 2 + 2; //formula for finding right child node in heap
+            int childIndexLeft = (item.HeapIndex * 2) + 1; //formula for finding left child node in heap
+            int childIndexRight = (item.HeapIndex * 2) + 2; //formula for finding right child node in heap
             int swapIndex = 0;
 
-            //set swapIndex to child with ighest priority
+            //set swapIndex to child with highest priority
             if(childIndexLeft < m_itemCount)
             {
                 swapIndex = childIndexLeft;

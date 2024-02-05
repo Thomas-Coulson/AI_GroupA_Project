@@ -37,7 +37,7 @@ public class Node : IHeapItem<Node>
 
     public int CompareTo(Node nodeToCompare)
     {
-        //return 1 if f cost is lower (highger priority), and 0 if higher (lower priority)
+        //return 1 if f cost is lower (highger priority), and -1 if higher (lower priority)
         int compare = m_fCost.CompareTo(nodeToCompare.m_fCost);
         if(compare == 0)
         {

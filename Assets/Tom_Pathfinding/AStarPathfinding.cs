@@ -33,20 +33,20 @@ public class AStarPathfinding : MonoBehaviour
         if(startNode.m_walkable && targetNode.m_walkable)
         {
             //make storage for open and closed nodes
-            List<Node> openSet = new List<Node>();// - used for nonoptimised search
-            //Heap<Node> openSet = new Heap<Node>(m_grid.m_maxSize);
+            //List<Node> openSet = new List<Node>();// - used for nonoptimised search
+            Heap<Node> openSet = new Heap<Node>(m_grid.m_maxSize);
             HashSet<Node> closedSet = new HashSet<Node>();
             openSet.Add(startNode); //add start node to open set
 
             while (openSet.Count > 0)//loop while there are open nodes
             {
-                Node currentNode = NonOptimisedNodeSearch(openSet);//non Optimised version of node search
+                //Node currentNode = NonOptimisedNodeSearch(openSet);//non Optimised version of node search
 
                 //set current node to closed
-                openSet.Remove(currentNode);// - used for nonoptimised search
+                //openSet.Remove(currentNode);// - used for nonoptimised search
 
                 //optimised node search
-                //Node currentNode = openSet.RemoveFirst();
+                Node currentNode = openSet.RemoveFirst();
 
                 closedSet.Add(currentNode);
 
@@ -121,11 +121,11 @@ public class AStarPathfinding : MonoBehaviour
 
         if(distX > distY)
         {
-            return 14 * distY + 10 * (distX - distY);
+            return (14 * distY) + (10 * (distX - distY));
         }
         else
         {
-            return 14 * distX + 10 * (distY - distX);
+            return (14 * distX) + (10 * (distY - distX));
         }
     }
 
