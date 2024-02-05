@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using UnityEngine;
 
@@ -9,23 +10,41 @@ public class Grid : MonoBehaviour
     public Vector2 m_gridWorldSize;
     public float m_nodeSize;
 
+    public Stopwatch m_updateTick;
+    public float m_updateInterval;
+
+    public bool m_DrawGridGizmos;
     public LayerMask m_unwalkableMask;
 
     int m_gridSizeX, m_gridSizeY;
 
     public List<Node> m_path;
-
     private void Start()
     {
         m_gridSizeX = Mathf.RoundToInt(m_gridWorldSize.x / (m_nodeSize * 2)); //number of nodes in grid X
         m_gridSizeY = Mathf.RoundToInt(m_gridWorldSize.y / (m_nodeSize * 2)); //number of nodes in grid Y
+
+        m_updateTick = new Stopwatch();
+        m_updateTick.Start();
+
+        m_grid = new Node[m_gridSizeX, m_gridSizeY];
         CreateGrid();
+    }
+
+    private void Update()
+    {
+        if(m_updateTick.ElapsedMilliseconds >= m_updateInterval)
+        {
+            m_updateTick.Stop();
+            CreateGrid();
+
+            m_updateTick = new Stopwatch();
+            m_updateTick.Start();
+        }
     }
 
     private void CreateGrid()
     {
-        m_grid = new Node[m_gridSizeX, m_gridSizeY];
-
         //start at bottom left
         Vector3 bottomLeftWorld = transform.position - (Vector3.right * (m_gridSizeX / 2)) - (Vector3.forward * (m_gridSizeY / 2));
 
@@ -98,17 +117,31 @@ public class Grid : MonoBehaviour
         {
             foreach(Node node in m_grid)
             {
-                Gizmos.color = node.m_walkable ? Color.white : Color.red;
-
-                if(m_path != null)
+                if(m_DrawGridGizmos)
                 {
-                    if(m_path.Contains(node))
+                    Gizmos.color = node.m_walkable ? Color.white : Color.red;
+
+                    if (m_path != null)
                     {
-                        Gizmos.color = Color.black;
+                        if (m_path.Contains(node))
+                        {
+                            Gizmos.color = Color.black;
+                        }
+                    }
+
+                    Gizmos.DrawCube(node.m_worldPos, Vector3.one * (m_nodeSize * 2 - .05f));
+                }
+                else
+                {
+                    if (m_path != null)
+                    {
+                        if (m_path.Contains(node))
+                        {
+                            Gizmos.color = Color.black;
+                            Gizmos.DrawCube(node.m_worldPos, Vector3.one * (m_nodeSize * 2 - .05f));
+                        }
                     }
                 }
-
-                Gizmos.DrawCube(node.m_worldPos, Vector3.one * (m_nodeSize * 2 - .05f));
             }
         }
     }
