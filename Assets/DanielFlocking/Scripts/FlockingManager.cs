@@ -1,20 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 public class FlockingManager : MonoBehaviour
 {
     List<FlockingAgent> m_agentsList;
     List<FlockingAgent> m_nearbyAgents;
+    List<FlockingAgent> m_leaderAgents;
     List<GameObject> m_obstacles;
 
     [SerializeField] float m_obstacleAvoidanceWeight = 1.0f;
     [SerializeField] float m_restObstacleAvoidanceMagnitude = 0.75f;
+    [SerializeField] float m_chaseLeaderWeight = 1.0f;
+    [SerializeField] int m_numberOfLeaders = 3;
     // Start is called before the first frame update
     void Start()
     {
         m_nearbyAgents = new List<FlockingAgent>();
         m_agentsList = new List<FlockingAgent>();
+        m_leaderAgents = new List<FlockingAgent>();
         m_obstacles = new List<GameObject>();
         GameObject[] objs = GameObject.FindGameObjectsWithTag("Agent");
         int count = 0;
@@ -39,6 +44,34 @@ public class FlockingManager : MonoBehaviour
             {
                 m_obstacles.Add(ob);
             }
+        }
+
+        if (m_numberOfLeaders <= 0)
+            m_numberOfLeaders = 1;
+
+        for (int i = 0; i < m_numberOfLeaders; i++) 
+        {
+            int rng = Random.Range(0, m_agentsList.Count);
+
+            if (m_agentsList[rng] == null) 
+            {
+                i--;
+                continue;
+            }
+            else if (m_agentsList[rng].GetIsLeader()) 
+            {
+                i--;
+                continue;
+            }
+
+            m_agentsList[rng].SetIsLeader(true);
+            m_leaderAgents.Add(m_agentsList[rng]);
+        }
+
+        foreach (FlockingAgent agent in m_agentsList) 
+        {
+            int rng = Random.Range(0, m_leaderAgents.Count);
+            agent.SetLeader(m_agentsList[rng]);
         }
     }
 
@@ -73,6 +106,11 @@ public class FlockingManager : MonoBehaviour
 
             if (m_obstacles.Count > 0)
                 Avoidance(m_agentsList[i]);
+
+            if (!m_agentsList[i].GetIsLeader()) 
+            {
+                ChaseLeader(m_agentsList[i]);
+            }
 
             m_nearbyAgents.Clear();
         }
@@ -172,5 +210,22 @@ public class FlockingManager : MonoBehaviour
             newVel.Normalize();
             agent.SetVelocity(newVel);
         }
+    }
+
+    void ChaseLeader(FlockingAgent agent) 
+    {
+        if (agent.GetIsLeader())
+            return;
+
+        FlockingAgent leader = agent.GetLeader();
+        Vector2 leaderPos = leader.GetV2Position();
+        Vector2 diff = leaderPos - agent.GetV2Position();
+        diff.Normalize();
+        Vector2 vel = agent.GetVelocity();
+        float velMag = vel.magnitude;
+        vel.Normalize();
+        vel = Vector2.Lerp(vel, diff * m_chaseLeaderWeight, 0.1f);
+        vel.Normalize();
+        agent.SetVelocity(vel * velMag);
     }
 }
