@@ -4,15 +4,23 @@ using UnityEngine;
 
 public class EnemyManger : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private int _healthpoints;
+
+    private void Awake()
     {
-        
+        _healthpoints = 30;
     }
 
-    // Update is called once per frame
-    void Update()
+    public bool TakeHit()
     {
-        
+        _healthpoints -= 10;
+        bool isDead = _healthpoints <= 0;
+        if (isDead) _Die();
+        return isDead;
+    }
+
+    private void _Die()
+    {
+        Destroy(gameObject);
     }
 }
