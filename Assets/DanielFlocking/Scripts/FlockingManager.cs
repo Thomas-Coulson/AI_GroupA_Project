@@ -70,15 +70,18 @@ public class FlockingManager : MonoBehaviour
 
         foreach (FlockingAgent agent in m_agentsList) 
         {
-            int rng = Random.Range(0, m_leaderAgents.Count);
-            agent.SetLeader(m_agentsList[rng]);
+            if (!agent.GetIsLeader()) 
+            {
+                int rng = Random.Range(0, m_leaderAgents.Count);
+                agent.SetLeader(m_agentsList[rng]);
+            }
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        for (int i = 0; i < m_agentsList.Count; i++) 
+        /*for (int i = 0; i < m_agentsList.Count; i++) 
         {
             if (m_agentsList[i] != null) 
             {
@@ -113,10 +116,47 @@ public class FlockingManager : MonoBehaviour
             }
 
             m_nearbyAgents.Clear();
-        }
+        }*/
     }
 
-    void Allignment(FlockingAgent agent) 
+    public Vector2 InFlock(FlockingAgent agent) 
+    {
+        Vector2 newVel = agent.GetVelocity();
+
+        if (agent != null)
+        {
+            Vector2 targetPos = agent.GetV2Position();
+            for (int i = 0; i < m_agentsList.Count; i++)
+            {
+                if (agent.GetId() != m_agentsList[i].GetId())
+                {
+                    Vector2 otherPos = m_agentsList[i].GetV2Position();
+                    Vector2 diff = otherPos - targetPos;
+                    if (diff.magnitude <= agent.GetAwarenessRadius())
+                    {
+                        m_nearbyAgents.Add(m_agentsList[i]);
+                    }
+                }
+            }
+        }
+
+        if (m_nearbyAgents.Count > 0)
+        {
+            newVel = Allignment(agent, newVel);
+            newVel = Cohesion(agent, newVel);
+            newVel = Separation(agent, newVel);
+            agent.m_weights[FlockingAgent.DecisionTypes.E_IN_FLOCK] = 1.0f;
+        }
+        else 
+        {
+            agent.m_weights[FlockingAgent.DecisionTypes.E_IN_FLOCK] = 0.0f;
+        }
+
+        m_nearbyAgents.Clear();
+        return newVel;
+    }
+
+    Vector2 Allignment(FlockingAgent agent, Vector2 vel) 
     {
         Vector2 velocitySum = Vector2.zero;
         for (int i = 0; i < m_nearbyAgents.Count; ++i) 
@@ -126,10 +166,11 @@ public class FlockingManager : MonoBehaviour
 
         velocitySum /= m_nearbyAgents.Count;
         velocitySum.Normalize();
-        agent.SetVelocity(velocitySum);
+        vel = velocitySum;
+        return vel;
     }
 
-    void Cohesion(FlockingAgent agent) 
+    Vector2 Cohesion(FlockingAgent agent, Vector2 vel) 
     {
         Vector2 positionSum = Vector2.zero;
         Vector2 agentPos = agent.GetV2Position();
@@ -140,14 +181,15 @@ public class FlockingManager : MonoBehaviour
         positionSum /= m_nearbyAgents.Count;
         Vector2 normal = positionSum - agentPos;
         normal.Normalize();
-        Vector2 vel = agent.GetVelocity();
+        Vector2 velocity = vel;
         float velMag = vel.magnitude;
-        vel.Normalize();
-        vel = Vector2.Lerp(vel, normal, 0.1f);
-        agent.SetVelocity(vel * velMag);
+        velocity.Normalize();
+        velocity = Vector2.Lerp(velocity, normal, 0.1f);
+        vel = velocity * velMag;
+        return vel;
     }
 
-    void Separation(FlockingAgent agent) 
+    Vector2 Separation(FlockingAgent agent, Vector2 vel) 
     {
         Vector2 positionSum = Vector2.zero;
         Vector2 agentPos = agent.GetV2Position();
@@ -159,15 +201,21 @@ public class FlockingManager : MonoBehaviour
         Vector2 normal = positionSum - agentPos;
         normal.Normalize();
         normal *= -1.0f;
-        Vector2 vel = agent.GetVelocity();
-        float velMag = vel.magnitude;
-        vel.Normalize();
-        vel = Vector2.Lerp(vel, normal, 0.1f);
-        agent.SetVelocity(vel * velMag);
+        Vector2 velocity = vel;
+        float velMag = velocity.magnitude;
+        velocity.Normalize();
+        velocity = Vector2.Lerp(velocity, normal, 0.1f);
+        vel = velocity * velMag;
+        return vel;
     }
 
-    void Avoidance(FlockingAgent agent) 
+    public Vector2 Avoidance(FlockingAgent agent) 
     {
+        if (m_obstacles.Count <= 0) 
+        {
+            agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 0.0f;
+            return agent.GetVelocity();
+        }
         Vector2 average = Vector2.zero;
         int count = 0;
         foreach (GameObject obstacle in m_obstacles) 
@@ -205,17 +253,23 @@ public class FlockingManager : MonoBehaviour
         {
             average /= count;
             average.Normalize();
-            average *= m_obstacleAvoidanceWeight;
-            Vector2 newVel = agent.GetVelocity() + average;
-            newVel.Normalize();
-            agent.SetVelocity(newVel);
+            //average *= m_obstacleAvoidanceWeight;
+            //Vector2 newVel = agent.GetVelocity() + average;
+            //newVel.Normalize();
+            agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 1.0f;
+            return average;
         }
+
+        agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 0.0f;
+        return agent.GetVelocity();
     }
 
-    void ChaseLeader(FlockingAgent agent) 
+    public Vector2 ChaseLeader(FlockingAgent agent) 
     {
-        if (agent.GetIsLeader())
-            return;
+        if (agent.GetIsLeader()) 
+        {
+            return agent.GetVelocity();
+        }
 
         FlockingAgent leader = agent.GetLeader();
         Vector2 leaderPos = leader.GetV2Position();
@@ -224,8 +278,8 @@ public class FlockingManager : MonoBehaviour
         Vector2 vel = agent.GetVelocity();
         float velMag = vel.magnitude;
         vel.Normalize();
-        vel = Vector2.Lerp(vel, diff * m_chaseLeaderWeight, 0.1f);
+        vel = Vector2.Lerp(vel, diff, 0.1f);
         vel.Normalize();
-        agent.SetVelocity(vel * velMag);
+        return vel * velMag;
     }
 }
