@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Diagnostics;
 
 public class AStarPathfinding : MonoBehaviour
 {
@@ -19,6 +20,10 @@ public class AStarPathfinding : MonoBehaviour
 
     Vector3[] FindPath(Vector3 startPos, Vector3 targetPos)
     {
+        //debug timer
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+
         Vector3[] waypoints = new Vector3[0];
         bool pathSucess = false;
 
@@ -28,7 +33,8 @@ public class AStarPathfinding : MonoBehaviour
         if(startNode.m_walkable && targetNode.m_walkable)
         {
             //make storage for open and closed nodes
-            List<Node> openSet = new List<Node>();
+            List<Node> openSet = new List<Node>();// - used for nonoptimised search
+            //Heap<Node> openSet = new Heap<Node>(m_grid.m_maxSize);
             HashSet<Node> closedSet = new HashSet<Node>();
             openSet.Add(startNode); //add start node to open set
 
@@ -37,11 +43,19 @@ public class AStarPathfinding : MonoBehaviour
                 Node currentNode = NonOptimisedNodeSearch(openSet);//non Optimised version of node search
 
                 //set current node to closed
-                openSet.Remove(currentNode);
+                openSet.Remove(currentNode);// - used for nonoptimised search
+
+                //optimised node search
+                //Node currentNode = openSet.RemoveFirst();
+
                 closedSet.Add(currentNode);
 
                 if (currentNode == targetNode)
                 {
+                    //debug timer text
+                    sw.Stop();
+                    print("Path found in:" + sw.ElapsedMilliseconds + "ms");
+
                     pathSucess = true;
                     break;
                 }

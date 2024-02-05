@@ -11,14 +11,22 @@ public class Grid : MonoBehaviour
     public float m_nodeSize;
 
     public Stopwatch m_updateTick;
-    public float m_updateInterval;
-
+    
     public bool m_DrawGridGizmos;
     public LayerMask m_unwalkableMask;
+
+    public bool m_updateTerrainOnTick;
+    public float m_updateInterval;
 
     int m_gridSizeX, m_gridSizeY;
 
     public List<Node> m_path;
+
+    public int m_maxSize
+    {
+        get { return m_gridSizeX * m_gridSizeY; }
+    }    
+
     private void Start()
     {
         m_gridSizeX = Mathf.RoundToInt(m_gridWorldSize.x / (m_nodeSize * 2)); //number of nodes in grid X
@@ -33,13 +41,16 @@ public class Grid : MonoBehaviour
 
     private void Update()
     {
-        if(m_updateTick.ElapsedMilliseconds >= m_updateInterval)
+        if(m_updateTerrainOnTick)
         {
-            m_updateTick.Stop();
-            CreateGrid();
+            if (m_updateTick.ElapsedMilliseconds >= m_updateInterval)
+            {
+                m_updateTick.Stop();
+                CreateGrid();
 
-            m_updateTick = new Stopwatch();
-            m_updateTick.Start();
+                m_updateTick = new Stopwatch();
+                m_updateTick.Start();
+            }
         }
     }
 
