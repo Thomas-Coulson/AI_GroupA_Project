@@ -10,6 +10,8 @@ public class FlockingManager : MonoBehaviour
     List<FlockingAgent> m_leaderAgents;
     List<GameObject> m_obstacles;
 
+    public List<Color> m_colorList;
+
     [SerializeField] float m_obstacleAvoidanceWeight = 1.0f;
     [SerializeField] float m_restObstacleAvoidanceMagnitude = 0.75f;
     [SerializeField] float m_chaseLeaderWeight = 1.0f;
@@ -117,6 +119,8 @@ public class FlockingManager : MonoBehaviour
 
             m_nearbyAgents.Clear();
         }*/
+
+        CalculateFlockIds();
     }
 
     public Vector2 InFlock(FlockingAgent agent) 
@@ -151,7 +155,7 @@ public class FlockingManager : MonoBehaviour
             newVel = Allignment(agent, newVel);
             newVel = Cohesion(agent, newVel);
             newVel = Separation(agent, newVel);
-            agent.m_weights[FlockingAgent.DecisionTypes.E_IN_FLOCK] = 20.0f;
+            agent.m_weights[FlockingAgent.DecisionTypes.E_IN_FLOCK] = 100.0f;
         }
         else 
         {
@@ -165,12 +169,17 @@ public class FlockingManager : MonoBehaviour
     Vector2 Allignment(FlockingAgent agent, Vector2 vel) 
     {
         Vector2 velocitySum = Vector2.zero;
+        int count = 0;
         for (int i = 0; i < m_nearbyAgents.Count; ++i) 
         {
-            velocitySum += m_nearbyAgents[i].GetVelocity();
+            if (m_nearbyAgents[i].GetFlockId()  == agent.GetLeader().GetFlockId()) 
+            {
+                velocitySum += m_nearbyAgents[i].GetVelocity();
+                count++;
+            }
         }
 
-        velocitySum /= m_nearbyAgents.Count;
+        velocitySum /= count;
         velocitySum.Normalize();
         vel = velocitySum;
         return vel;
@@ -180,18 +189,23 @@ public class FlockingManager : MonoBehaviour
     {
         Vector2 positionSum = Vector2.zero;
         Vector2 agentPos = agent.GetV2Position();
+        int count = 0;
         for (int i = 0; i < m_nearbyAgents.Count; ++i)
         {
-            positionSum += m_nearbyAgents[i].GetVelocity();
+            if (m_nearbyAgents[i].GetFlockId() == agent.GetLeader().GetFlockId()) 
+            {
+                positionSum += m_nearbyAgents[i].GetVelocity();
+                count++;
+            } 
         }
-        positionSum /= m_nearbyAgents.Count;
+        positionSum /= count;
         Vector2 normal = positionSum - agentPos;
         normal.Normalize();
         Vector2 velocity = vel;
         float velMag = vel.magnitude;
         velocity.Normalize();
         velocity = Vector2.Lerp(velocity, normal, 0.1f);
-        vel = velocity * velMag;
+        vel = velocity;
         return vel;
     }
 
@@ -211,7 +225,7 @@ public class FlockingManager : MonoBehaviour
         float velMag = velocity.magnitude;
         velocity.Normalize();
         velocity = Vector2.Lerp(velocity, normal, 0.1f);
-        vel = velocity * velMag;
+        vel = velocity;
         return vel;
     }
 
@@ -262,7 +276,7 @@ public class FlockingManager : MonoBehaviour
             //average *= m_obstacleAvoidanceWeight;
             //Vector2 newVel = agent.GetVelocity() + average;
             //newVel.Normalize();
-            agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 20.0f;
+            agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 100.0f;
             return average;
         }
 
@@ -286,7 +300,7 @@ public class FlockingManager : MonoBehaviour
         vel.Normalize();
         vel = Vector2.Lerp(vel, diff, 0.1f);
         vel.Normalize();
-        return vel * velMag;
+        return vel;
     }
 
     public Vector2 Wander(FlockingAgent agent) 
@@ -311,7 +325,7 @@ public class FlockingManager : MonoBehaviour
         vel.Normalize();
         vel = Vector2.Lerp(vel, diff, 0.1f);
         vel.Normalize();
-        return vel * velMag;
+        return vel;
     }
 
     public Vector2 EvadeLeader(FlockingAgent agent) 
@@ -347,9 +361,46 @@ public class FlockingManager : MonoBehaviour
             vel.Normalize();
             vel = Vector2.Lerp(vel, diff, 0.1f);
             vel.Normalize();
-            return vel * velMag;
+            return vel;
         }
 
         return Vector2.zero;
+    }
+
+    void CalculateFlockIds() 
+    {
+        foreach (FlockingAgent agent in m_agentsList) 
+        {
+            agent.SetFlockId(-1);
+        }
+
+        int flockCount = 0;
+
+        foreach (FlockingAgent agent in m_agentsList) 
+        {
+            if (agent.GetFlockId() != -1)
+                continue;
+
+            RecursiveFlockNeighbours(agent, flockCount);
+            flockCount++;
+        }
+    }
+
+    void RecursiveFlockNeighbours(FlockingAgent agent, int id) 
+    {
+        agent.SetFlockId(id);
+
+        foreach (FlockingAgent otherAgent in m_agentsList)
+        {
+            if (agent.GetId() == otherAgent.GetId())
+                continue;
+
+            if (otherAgent.GetFlockId() != -1)
+                continue;
+
+            Vector2 diff = otherAgent.GetV2Position() - agent.GetV2Position();
+            if (diff.magnitude <= (agent.GetAwarenessRadius() + otherAgent.GetAwarenessRadius()))
+                RecursiveFlockNeighbours(otherAgent, id);
+        }
     }
 }
