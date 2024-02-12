@@ -73,7 +73,7 @@ public class FlockingManager : MonoBehaviour
             if (!agent.GetIsLeader()) 
             {
                 int rng = Random.Range(0, m_leaderAgents.Count);
-                agent.SetLeader(m_agentsList[rng]);
+                agent.SetLeader(m_leaderAgents[rng]);
             }
         }
     }
@@ -121,6 +121,12 @@ public class FlockingManager : MonoBehaviour
 
     public Vector2 InFlock(FlockingAgent agent) 
     {
+        if (agent.GetIsLeader()) 
+        {
+            agent.m_weights[FlockingAgent.DecisionTypes.E_IN_FLOCK] = 0.0f;
+            return Vector2.zero;
+        }
+
         Vector2 newVel = agent.GetVelocity();
 
         if (agent != null)
@@ -145,7 +151,7 @@ public class FlockingManager : MonoBehaviour
             newVel = Allignment(agent, newVel);
             newVel = Cohesion(agent, newVel);
             newVel = Separation(agent, newVel);
-            agent.m_weights[FlockingAgent.DecisionTypes.E_IN_FLOCK] = 1.0f;
+            agent.m_weights[FlockingAgent.DecisionTypes.E_IN_FLOCK] = 20.0f;
         }
         else 
         {
@@ -214,7 +220,7 @@ public class FlockingManager : MonoBehaviour
         if (m_obstacles.Count <= 0) 
         {
             agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 0.0f;
-            return agent.GetVelocity();
+            return Vector2.zero;
         }
         Vector2 average = Vector2.zero;
         int count = 0;
@@ -256,19 +262,19 @@ public class FlockingManager : MonoBehaviour
             //average *= m_obstacleAvoidanceWeight;
             //Vector2 newVel = agent.GetVelocity() + average;
             //newVel.Normalize();
-            agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 1.0f;
+            agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 20.0f;
             return average;
         }
 
         agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 0.0f;
-        return agent.GetVelocity();
+        return Vector2.zero;
     }
 
     public Vector2 ChaseLeader(FlockingAgent agent) 
     {
         if (agent.GetIsLeader()) 
         {
-            return agent.GetVelocity();
+            return Vector2.zero;
         }
 
         FlockingAgent leader = agent.GetLeader();
@@ -281,5 +287,69 @@ public class FlockingManager : MonoBehaviour
         vel = Vector2.Lerp(vel, diff, 0.1f);
         vel.Normalize();
         return vel * velMag;
+    }
+
+    public Vector2 Wander(FlockingAgent agent) 
+    {
+        if (!agent.GetIsLeader())
+            return Vector2.zero;
+
+        Vector2 wander = agent.GetWanderTarget();
+        Vector2 pos = agent.GetV2Position();
+        float dist = Vector2.Distance(wander, pos);
+
+        if (wander.x == 9999999999.0f || dist <= agent.GetAwarenessRadius()) 
+        {
+            wander = new Vector2(Random.Range(-80.0f, 80.0f), Random.Range(-80.0f, 80.0f));
+            agent.SetWanderTarget(wander);
+        }
+
+        Vector2 diff = wander - pos;
+        diff.Normalize();
+        Vector2 vel = agent.GetVelocity();
+        float velMag = vel.magnitude;
+        vel.Normalize();
+        vel = Vector2.Lerp(vel, diff, 0.1f);
+        vel.Normalize();
+        return vel * velMag;
+    }
+
+    public Vector2 EvadeLeader(FlockingAgent agent) 
+    {
+        if (agent.GetIsLeader())
+            return Vector2.zero;
+
+        FlockingAgent leader = agent.GetLeader();
+        if (leader == null)
+            return Vector2.zero;
+
+        Vector2 leaderTarget = leader.GetWanderTarget();
+
+        if (leaderTarget.x == 9999999999.0f)
+            return Vector2.zero;
+
+        Vector2 leaderDir = leaderTarget - leader.GetV2Position();
+        leaderDir.Normalize();
+        Vector2 agentDir = agent.GetV2Position() - leader.GetV2Position();
+        Vector3 leaderDirV3 = new Vector3(leaderDir.x, 0.0f, leaderDir.y);
+        Vector3 agentDirV3 = new Vector3(agentDir.x, 0.0f, agentDir.y);
+
+        Vector3 projection = Vector3.Project(agentDirV3, leaderDirV3);
+        Vector2 projectionV2 = new Vector2(projection.x, projection.z);
+        projectionV2 = leader.GetV2Position() + projectionV2;
+        float dist = Vector2.Distance(agent.GetV2Position(), projectionV2);
+        if (dist <= agent.GetAwarenessRadius()) 
+        {
+            Vector2 diff = agent.GetV2Position() - projectionV2;
+            diff.Normalize();
+            Vector2 vel = agent.GetVelocity();
+            float velMag = vel.magnitude;
+            vel.Normalize();
+            vel = Vector2.Lerp(vel, diff, 0.1f);
+            vel.Normalize();
+            return vel * velMag;
+        }
+
+        return Vector2.zero;
     }
 }

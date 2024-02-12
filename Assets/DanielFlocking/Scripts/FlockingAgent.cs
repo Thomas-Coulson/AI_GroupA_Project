@@ -13,12 +13,15 @@ public class FlockingAgent : MonoBehaviour
     int m_id = 0;
     [SerializeField] Material m_leaderMaterial;
     FlockingManager m_manager;
-    List<Vector2> m_possibleVelocities = new List<Vector2>();
+    [SerializeField] List<Vector2> m_possibleVelocities = new List<Vector2>();
+    Vector2 m_wanderTarget = new Vector2(9999999999.0f, 9999999999.0f);
 
     [SerializeField]
     public enum DecisionTypes
     {
         E_CHASE_LEADER,
+        E_LEADER_WANDER,
+        E_CLEAR_LEADER_PATH,
         E_AVOID_OBSTACLE,
         E_IN_FLOCK
     }
@@ -37,11 +40,17 @@ public class FlockingAgent : MonoBehaviour
     {
         if (m_manager != null) 
         {
+            m_possibleVelocities.Clear();
+
             m_possibleVelocities.Add(m_manager.ChaseLeader(this));
+            m_possibleVelocities.Add(m_manager.Wander(this));
+            m_possibleVelocities.Add(m_manager.EvadeLeader(this));
             m_possibleVelocities.Add(m_manager.Avoidance(this));
             m_possibleVelocities.Add(m_manager.InFlock(this));
 
             m_possibleVelocities[(int)DecisionTypes.E_CHASE_LEADER] *= m_weights[DecisionTypes.E_CHASE_LEADER];
+            m_possibleVelocities[(int)DecisionTypes.E_LEADER_WANDER] *= m_weights[DecisionTypes.E_LEADER_WANDER];
+            m_possibleVelocities[(int)DecisionTypes.E_CLEAR_LEADER_PATH] *= m_weights[DecisionTypes.E_CLEAR_LEADER_PATH];
             m_possibleVelocities[(int)DecisionTypes.E_AVOID_OBSTACLE] *= m_weights[DecisionTypes.E_AVOID_OBSTACLE];
             m_possibleVelocities[(int)DecisionTypes.E_IN_FLOCK] *= m_weights[DecisionTypes.E_IN_FLOCK];
 
@@ -62,8 +71,6 @@ public class FlockingAgent : MonoBehaviour
                 sum.Normalize();
                 m_velocity = sum;
             }
-
-            m_possibleVelocities.Clear();
         }
         else 
         {
@@ -78,12 +85,25 @@ public class FlockingAgent : MonoBehaviour
 
     public void InitialiseWeightsAndRefs() 
     {
-        if (m_isLeader || m_leader == null)
+        if (m_isLeader || m_leader == null) 
+        {
             m_weights.Add(DecisionTypes.E_CHASE_LEADER, 0.0f);
+            m_weights.Add(DecisionTypes.E_LEADER_WANDER, 10.0f);
+            m_weights.Add(DecisionTypes.E_CLEAR_LEADER_PATH, 0.0f);
+        }
         else
-            m_weights.Add(DecisionTypes.E_CHASE_LEADER, 10.0f);
-        m_weights.Add(DecisionTypes.E_AVOID_OBSTACLE, 5.0f);
-        m_weights.Add(DecisionTypes.E_IN_FLOCK, 1.0f);
+        {
+            m_weights.Add(DecisionTypes.E_CHASE_LEADER, 1.0f);
+            m_weights.Add(DecisionTypes.E_LEADER_WANDER, 0.0f);
+            m_weights.Add(DecisionTypes.E_CLEAR_LEADER_PATH, 1.0f);
+        }
+
+        m_weights.Add(DecisionTypes.E_AVOID_OBSTACLE, 20.0f);
+
+        if (m_isLeader || m_leader == null)
+            m_weights.Add(DecisionTypes.E_IN_FLOCK, 0.0f);
+        else
+            m_weights.Add(DecisionTypes.E_IN_FLOCK, 20.0f);
 
         m_manager = FindObjectOfType<FlockingManager>();
     }
@@ -151,9 +171,25 @@ public class FlockingAgent : MonoBehaviour
         }
     }
 
+    public Vector2 GetWanderTarget() 
+    {
+        return m_wanderTarget;
+    }
+
+    public void SetWanderTarget(Vector2 w) 
+    {
+        m_wanderTarget = w;
+    }
+
     private void OnDrawGizmos()
     {
-        Gizmos.color = new Color(1.0f, 0.0f, 0.0f, 0.7f);
+        Gizmos.color = new Color(1.0f, 0.0f, 0.0f, 0.25f);
         Gizmos.DrawSphere(transform.position, m_awarenessRadius);
+
+        if (m_isLeader) 
+        {
+            Gizmos.color = new Color(0.0f, 1.0f, 0.0f, 0.25f);
+            Gizmos.DrawSphere(new Vector3(m_wanderTarget.x, 0.0f, m_wanderTarget.y), 5.0f);
+        }
     }
 }
