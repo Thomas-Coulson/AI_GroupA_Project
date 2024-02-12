@@ -301,13 +301,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 230995046}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.44458845, y: 0.554782, z: -0.4316865, w: 0.555162}
+  m_LocalRotation: {x: 0.6474149, y: -0.09416283, z: 0.10213957, w: 0.7493696}
   m_LocalPosition: {x: 55.2, y: 30, z: 53.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 76.562, y: -267.316, z: -356.549}
+  m_LocalEulerAnglesHint: {x: 81.706, y: -363.526, z: -347.527}
 --- !u!114 &230995050
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -348,7 +348,7 @@ Transform:
   m_GameObject: {fileID: 384708798}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.5, y: 1, z: 9.42}
+  m_LocalPosition: {x: -4.11, y: 1, z: 2.49}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -431,7 +431,7 @@ GameObject:
   - component: {fileID: 1007303586}
   m_Layer: 0
   m_Name: Capsule
-  m_TagString: Untagged
+  m_TagString: walkable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -519,7 +519,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 62.2, y: 2.1191068, z: 29.4}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 3, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

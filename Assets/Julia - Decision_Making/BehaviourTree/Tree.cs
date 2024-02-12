@@ -8,7 +8,7 @@ namespace BehaviourTree
 
     public abstract class Tree : MonoBehaviour
     {
-        private Node _root = null;
+        private Node_one _root = null;
 
         protected void Start()
         {
@@ -20,6 +20,6 @@ namespace BehaviourTree
                 _root.Evaluate();
         }
 
-        protected abstract Node SetupTree();
+        protected abstract Node_one SetupTree();
     }
 }
