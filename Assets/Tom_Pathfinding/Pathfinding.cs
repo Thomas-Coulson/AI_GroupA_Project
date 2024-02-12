@@ -3,10 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Diagnostics;
 
+public enum EPathfindingType
+{
+    AStar,
+    BestFirst
+}
+
 public class AStarPathfinding : MonoBehaviour
 {
 
     Grid m_grid;
+
+    public EPathfindingType m_pathfindingType;
 
     private void Awake()
     {
@@ -33,20 +41,20 @@ public class AStarPathfinding : MonoBehaviour
         if(startNode.m_walkable && targetNode.m_walkable)
         {
             //make storage for open and closed nodes
-            //List<Node> openSet = new List<Node>();// - used for nonoptimised search
-            Heap<Node> openSet = new Heap<Node>(m_grid.m_maxSize);
+            List<Node> openSet = new List<Node>();// - used for nonoptimised search
+            //Heap<Node> openSet = new Heap<Node>(m_grid.m_maxSize);
             HashSet<Node> closedSet = new HashSet<Node>();
             openSet.Add(startNode); //add start node to open set
 
             while (openSet.Count > 0)//loop while there are open nodes
             {
-                //Node currentNode = NonOptimisedNodeSearch(openSet);//non Optimised version of node search
+                Node currentNode = NonOptimisedNodeSearch(openSet);//non Optimised version of node search
 
                 //set current node to closed
-                //openSet.Remove(currentNode);// - used for nonoptimised search
+                openSet.Remove(currentNode);// - used for nonoptimised search
 
                 //optimised node search
-                Node currentNode = openSet.RemoveFirst();
+                //Node currentNode = openSet.RemoveFirst();
 
                 closedSet.Add(currentNode);
 
@@ -99,11 +107,26 @@ public class AStarPathfinding : MonoBehaviour
         Node currentNode = openSet[0];
         for (int i = 1; i < openSet.Count; i++)//search all other nodes in open set
         {
-            //set current node to open node with smallest f cost, or if f costs are equal, node with smallest h cost (not optimised)
-            if (openSet[i].m_fCost < currentNode.m_fCost || (openSet[i].m_fCost == currentNode.m_fCost && openSet[i].m_hCost < currentNode.m_hCost))
+            switch (m_pathfindingType)
             {
-                currentNode = openSet[i];
+                case EPathfindingType.AStar:
+                    //set current node to open node with smallest f cost, or if f costs are equal, node with smallest h cost (not optimised)
+                    if (openSet[i].m_fCost < currentNode.m_fCost || (openSet[i].m_fCost == currentNode.m_fCost && openSet[i].m_hCost < currentNode.m_hCost))
+                    {
+                        currentNode = openSet[i];
+                    }
+                    break;
+                case EPathfindingType.BestFirst:
+                    //best first search heuristics comparison
+                    if (openSet[i].m_hCost < currentNode.m_hCost)
+                    {
+                        currentNode = openSet[i];
+                    }
+                    break;
+                default:
+                    break;
             }
+
         }
 
         return currentNode;
