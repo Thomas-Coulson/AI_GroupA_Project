@@ -153,9 +153,15 @@ public class FlockingManager : MonoBehaviour
         if (m_nearbyAgents.Count > 0)
         {
             newVel = Allignment(agent, newVel);
-            newVel = Cohesion(agent, newVel);
-            newVel = Separation(agent, newVel);
+            newVel += Cohesion(agent, newVel);
+            newVel += Separation(agent, newVel.normalized);
             agent.m_weights[FlockingAgent.DecisionTypes.E_IN_FLOCK] = 100.0f;
+
+            if (agent.GetFlockId() == agent.GetLeader().GetFlockId())
+                agent.m_weights[FlockingAgent.DecisionTypes.E_CHASE_LEADER] = 0.0f;
+            else
+                agent.m_weights[FlockingAgent.DecisionTypes.E_CHASE_LEADER] = 100.0f;
+
         }
         else 
         {
@@ -200,12 +206,18 @@ public class FlockingManager : MonoBehaviour
         }
         positionSum /= count;
         Vector2 normal = positionSum - agentPos;
+        float dist = normal.magnitude;
         normal.Normalize();
         Vector2 velocity = vel;
         float velMag = vel.magnitude;
         velocity.Normalize();
         velocity = Vector2.Lerp(velocity, normal, 0.1f);
-        vel = velocity;
+
+        if (dist > 0.0f)
+            vel = velocity * dist;
+        else
+            vel = velocity;
+
         return vel;
     }
 
@@ -219,13 +231,19 @@ public class FlockingManager : MonoBehaviour
         }
         positionSum /= m_nearbyAgents.Count;
         Vector2 normal = positionSum - agentPos;
+        float dist = normal.magnitude;
         normal.Normalize();
         normal *= -1.0f;
         Vector2 velocity = vel;
         float velMag = velocity.magnitude;
         velocity.Normalize();
         velocity = Vector2.Lerp(velocity, normal, 0.1f);
-        vel = velocity;
+
+
+        if (agent.GetAwarenessRadius() - dist > 0.0f)
+            vel = velocity * (agent.GetAwarenessRadius() - dist);
+        else
+            vel = velocity;
         return vel;
     }
 
@@ -350,9 +368,13 @@ public class FlockingManager : MonoBehaviour
 
         Vector3 projection = Vector3.Project(agentDirV3, leaderDirV3);
         Vector2 projectionV2 = new Vector2(projection.x, projection.z);
+
+        if (projectionV2.normalized == -leader.GetVelocity().normalized)
+            return Vector2.zero;
+
         projectionV2 = leader.GetV2Position() + projectionV2;
         float dist = Vector2.Distance(agent.GetV2Position(), projectionV2);
-        if (dist <= agent.GetAwarenessRadius()) 
+        if (dist <= agent.GetAwarenessRadius() / 2.0f) 
         {
             Vector2 diff = agent.GetV2Position() - projectionV2;
             diff.Normalize();

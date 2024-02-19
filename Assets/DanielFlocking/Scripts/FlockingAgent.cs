@@ -25,7 +25,7 @@ public class FlockingAgent : MonoBehaviour
         E_CLEAR_LEADER_PATH,
         E_AVOID_OBSTACLE,
         E_IN_FLOCK,
-        E_NUMBER_OF_DEcISION_TYPES
+        E_NUMBER_OF_DECISION_TYPES
     }
 
     public Dictionary<DecisionTypes, float> m_weights = new Dictionary<DecisionTypes, float>();
@@ -35,6 +35,9 @@ public class FlockingAgent : MonoBehaviour
     {
         m_velocity = new Vector2 (Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f));
         m_velocity.Normalize();
+
+        Vector2 pos = new Vector2(Random.Range(-80.0f, 80.0f), Random.Range(-80.0f, 80.0f));
+        transform.position = new Vector3(pos.x, 0.0f, pos.y);
     }
 
     // Update is called once per frame
@@ -42,7 +45,7 @@ public class FlockingAgent : MonoBehaviour
     {
         if (m_manager != null) 
         {
-            if (m_weights.Count < (int)DecisionTypes.E_NUMBER_OF_DEcISION_TYPES)
+            if (m_weights.Count < (int)DecisionTypes.E_NUMBER_OF_DECISION_TYPES)
                 InitialiseWeightsAndRefs();
 
             m_possibleVelocities.Clear();
@@ -116,7 +119,7 @@ public class FlockingAgent : MonoBehaviour
         {
             m_weights.Add(DecisionTypes.E_CHASE_LEADER, 100.0f);
             m_weights.Add(DecisionTypes.E_LEADER_WANDER, 0.0f);
-            m_weights.Add(DecisionTypes.E_CLEAR_LEADER_PATH, 100.0f);
+            m_weights.Add(DecisionTypes.E_CLEAR_LEADER_PATH, 10.0f);
         }
 
         m_weights.Add(DecisionTypes.E_AVOID_OBSTACLE, 100.0f);
