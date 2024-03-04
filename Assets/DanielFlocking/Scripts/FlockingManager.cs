@@ -127,7 +127,6 @@ public class FlockingManager : MonoBehaviour
     {
         if (agent.GetIsLeader()) 
         {
-            agent.m_weights[FlockingAgent.DecisionTypes.E_IN_FLOCK] = 0.0f;
             return Vector2.zero;
         }
 
@@ -155,17 +154,16 @@ public class FlockingManager : MonoBehaviour
             newVel = Allignment(agent, newVel);
             newVel += Cohesion(agent, newVel);
             newVel += Separation(agent, newVel.normalized);
-            agent.m_weights[FlockingAgent.DecisionTypes.E_IN_FLOCK] = 100.0f;
 
-            if (agent.GetFlockId() == agent.GetLeader().GetFlockId())
-                agent.m_weights[FlockingAgent.DecisionTypes.E_CHASE_LEADER] = 0.0f;
-            else
-                agent.m_weights[FlockingAgent.DecisionTypes.E_CHASE_LEADER] = 100.0f;
+            //if (agent.GetFlockId() == agent.GetLeader().GetFlockId())
+            //    agent.m_weights[FlockingAgent.DecisionTypes.E_CHASE_LEADER] = 0.0f;
+            //else
+            //    agent.m_weights[FlockingAgent.DecisionTypes.E_CHASE_LEADER] = 100.0f;
 
         }
         else 
         {
-            agent.m_weights[FlockingAgent.DecisionTypes.E_IN_FLOCK] = 0.0f;
+            return Vector2.zero;
         }
 
         m_nearbyAgents.Clear();
@@ -178,11 +176,12 @@ public class FlockingManager : MonoBehaviour
         int count = 0;
         for (int i = 0; i < m_nearbyAgents.Count; ++i) 
         {
-            if (m_nearbyAgents[i].GetFlockId()  == agent.GetLeader().GetFlockId()) 
-            {
-                velocitySum += m_nearbyAgents[i].GetVelocity();
-                count++;
-            }
+            //if (m_nearbyAgents[i].GetFlockId()  == agent.GetLeader().GetFlockId()) 
+            //{
+            //    
+            //}
+            velocitySum += m_nearbyAgents[i].GetVelocity();
+            count++;
         }
 
         velocitySum /= count;
@@ -198,11 +197,12 @@ public class FlockingManager : MonoBehaviour
         int count = 0;
         for (int i = 0; i < m_nearbyAgents.Count; ++i)
         {
-            if (m_nearbyAgents[i].GetFlockId() == agent.GetLeader().GetFlockId()) 
-            {
-                positionSum += m_nearbyAgents[i].GetVelocity();
-                count++;
-            } 
+            //if (m_nearbyAgents[i].GetFlockId() == agent.GetLeader().GetFlockId()) 
+            //{
+            //    
+            //}
+            positionSum += m_nearbyAgents[i].GetV2Position();
+            count++;
         }
         positionSum /= count;
         Vector2 normal = positionSum - agentPos;
@@ -213,10 +213,10 @@ public class FlockingManager : MonoBehaviour
         velocity.Normalize();
         velocity = Vector2.Lerp(velocity, normal, 0.1f);
 
-        if (dist > 0.0f)
-            vel = velocity * dist;
+        if (dist > (agent.GetAwarenessRadius() / 2.0f))
+            vel = velocity * (dist - (agent.GetAwarenessRadius() / 2.0f));
         else
-            vel = velocity;
+            vel = Vector2.zero;
 
         return vel;
     }
@@ -227,7 +227,8 @@ public class FlockingManager : MonoBehaviour
         Vector2 agentPos = agent.GetV2Position();
         for (int i = 0; i < m_nearbyAgents.Count; ++i)
         {
-            positionSum += m_nearbyAgents[i].GetVelocity();
+            //if (m_nearbyAgents[i].GetFlockId() == agent.GetLeader().GetFlockId())
+            positionSum += m_nearbyAgents[i].GetV2Position();
         }
         positionSum /= m_nearbyAgents.Count;
         Vector2 normal = positionSum - agentPos;
@@ -240,10 +241,10 @@ public class FlockingManager : MonoBehaviour
         velocity = Vector2.Lerp(velocity, normal, 0.1f);
 
 
-        if (agent.GetAwarenessRadius() - dist > 0.0f)
-            vel = velocity * (agent.GetAwarenessRadius() - dist);
+        if (dist < (agent.GetAwarenessRadius() / 2.0f))
+            vel = velocity * ((agent.GetAwarenessRadius() / 2.0f) - dist);
         else
-            vel = velocity;
+            vel = Vector2.zero;
         return vel;
     }
 
@@ -353,6 +354,12 @@ public class FlockingManager : MonoBehaviour
 
         FlockingAgent leader = agent.GetLeader();
         if (leader == null)
+            return Vector2.zero;
+
+        Vector2 leaderCurrentPos = leader.GetV2Position();
+        Vector2 meToLeader = leaderCurrentPos - agent.GetV2Position();
+
+        if (meToLeader.magnitude > agent.GetAwarenessRadius())
             return Vector2.zero;
 
         Vector2 leaderTarget = leader.GetWanderTarget();

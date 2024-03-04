@@ -6397,7 +6397,7 @@ MonoBehaviour:
   m_obstacleAvoidanceWeight: 5
   m_restObstacleAvoidanceMagnitude: 0.75
   m_chaseLeaderWeight: 5
-  m_numberOfLeaders: 3
+  m_numberOfLeaders: 1
 --- !u!4 &1837292814
 Transform:
   m_ObjectHideFlags: 0

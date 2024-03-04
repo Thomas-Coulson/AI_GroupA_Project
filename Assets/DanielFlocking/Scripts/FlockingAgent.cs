@@ -94,7 +94,13 @@ public class FlockingAgent : MonoBehaviour
         {
             if (m_flockId == m_leader.GetFlockId())
             {
-                m_weights[DecisionTypes.E_CHASE_LEADER] = 0.0f;
+                if (m_weights[DecisionTypes.E_CHASE_LEADER] > 0.0f) 
+                {
+                    m_weights[DecisionTypes.E_CHASE_LEADER] -= Time.deltaTime * 50.0f;
+                    if (m_weights[DecisionTypes.E_CHASE_LEADER] < 0.0f)
+                        m_weights[DecisionTypes.E_CHASE_LEADER] = 0.0f;
+                }
+                //m_weights[DecisionTypes.E_CHASE_LEADER] = 0.0f;
             }
             else
             {
@@ -124,7 +130,7 @@ public class FlockingAgent : MonoBehaviour
 
         m_weights.Add(DecisionTypes.E_AVOID_OBSTACLE, 100.0f);
 
-        if (m_isLeader || m_leader == null)
+        if (m_isLeader)
             m_weights.Add(DecisionTypes.E_IN_FLOCK, 0.0f);
         else
             m_weights.Add(DecisionTypes.E_IN_FLOCK, 100.0f);
