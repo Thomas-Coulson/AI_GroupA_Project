@@ -3,7 +3,11 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Agent
+  - Obstacle
+  - walkable
+  - Undefined
   layers:
   - Default
   - TransparentFX
