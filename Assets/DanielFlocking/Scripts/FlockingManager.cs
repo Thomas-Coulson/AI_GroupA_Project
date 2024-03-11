@@ -192,7 +192,7 @@ public class FlockingManager : MonoBehaviour
 
     Vector2 Cohesion(FlockingAgent agent, Vector2 vel) 
     {
-        Vector2 positionSum = Vector2.zero;
+        /*Vector2 positionSum = Vector2.zero;
         Vector2 agentPos = agent.GetV2Position();
         int count = 0;
         for (int i = 0; i < m_nearbyAgents.Count; ++i)
@@ -218,12 +218,31 @@ public class FlockingManager : MonoBehaviour
         else
             vel = Vector2.zero;
 
-        return vel;
+        return vel;*/
+
+        Vector2 dirSum = Vector2.zero;
+        int count = 0;
+
+        for (int i = 0; i < m_nearbyAgents.Count; ++i)
+        {
+            Vector2 diff = m_nearbyAgents[i].GetV2Position() - agent.GetV2Position();
+            //float mag = diff.magnitude;
+            //diff.Normalize();
+            //diff *= mag;
+            dirSum += diff;
+            count++;
+        }
+
+        Vector2 finalDir = dirSum / count;
+        finalDir.Normalize();
+        Vector2 normalVel = agent.GetVelocity().normalized;
+        vel = Vector2.Lerp(vel, finalDir, 0.1f);
+        return vel.normalized;
     }
 
     Vector2 Separation(FlockingAgent agent, Vector2 vel) 
     {
-        Vector2 positionSum = Vector2.zero;
+        /*Vector2 positionSum = Vector2.zero;
         Vector2 agentPos = agent.GetV2Position();
         for (int i = 0; i < m_nearbyAgents.Count; ++i)
         {
@@ -245,7 +264,26 @@ public class FlockingManager : MonoBehaviour
             vel = velocity * ((agent.GetAwarenessRadius() / 2.0f) - dist);
         else
             vel = Vector2.zero;
-        return vel;
+        return vel;*/
+
+        Vector2 dirSum = Vector2.zero;
+        int count = 0;
+
+        for (int i = 0; i < m_nearbyAgents.Count; ++i) 
+        {
+            Vector2 diff = agent.GetV2Position() - m_nearbyAgents[i].GetV2Position();
+            float mag = diff.magnitude;
+            diff.Normalize();
+            diff *= (agent.GetAwarenessRadius() - mag);
+            dirSum += diff;
+            count++;
+        }
+
+        Vector2 finalDir = dirSum / count;
+        finalDir.Normalize();
+        Vector2 normalVel = agent.GetVelocity().normalized;
+        vel = Vector2.Lerp(vel, finalDir, 0.1f);
+        return vel.normalized * 10.0f;
     }
 
     public Vector2 Avoidance(FlockingAgent agent) 
