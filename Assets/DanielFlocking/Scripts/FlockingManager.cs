@@ -295,7 +295,7 @@ public class FlockingManager : MonoBehaviour
             //average *= m_obstacleAvoidanceWeight;
             //Vector2 newVel = agent.GetVelocity() + average;
             //newVel.Normalize();
-            agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 100.0f;
+            agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 200.0f;
             return average;
         }
 

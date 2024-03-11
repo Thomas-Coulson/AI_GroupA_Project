@@ -128,7 +128,7 @@ public class FlockingAgent : MonoBehaviour
             m_weights.Add(DecisionTypes.E_CLEAR_LEADER_PATH, 10.0f);
         }
 
-        m_weights.Add(DecisionTypes.E_AVOID_OBSTACLE, 100.0f);
+        m_weights.Add(DecisionTypes.E_AVOID_OBSTACLE, 200.0f);
 
         if (m_isLeader)
             m_weights.Add(DecisionTypes.E_IN_FLOCK, 0.0f);
