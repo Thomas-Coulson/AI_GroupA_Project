@@ -7523,6 +7523,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: AgentObstacle
       objectReference: {fileID: 0}
+    - target: {fileID: 1436119842564599035, guid: 09bb75dba00c2e84f93f5b77ed92c4bc, type: 3}
+      propertyPath: m_TagString
+      value: Obstacle
+      objectReference: {fileID: 0}
     - target: {fileID: 6547629029358365215, guid: 09bb75dba00c2e84f93f5b77ed92c4bc, type: 3}
       propertyPath: m_RootOrder
       value: 6
