@@ -5,7 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - walkable
-  - Obstacle
+  - Undefined
   layers:
   - Default
   - TransparentFX
