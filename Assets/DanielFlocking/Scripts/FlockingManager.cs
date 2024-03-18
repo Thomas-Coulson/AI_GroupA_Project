@@ -184,6 +184,12 @@ public class FlockingManager : MonoBehaviour
             count++;
         }
 
+        if (agent.GetFlockId() == agent.GetLeader().GetFlockId()) 
+        {
+            velocitySum += agent.GetLeader().GetVelocity() * 5.0f;
+            count++;
+        }
+
         velocitySum /= count;
         velocitySum.Normalize();
         vel = velocitySum;
@@ -275,6 +281,8 @@ public class FlockingManager : MonoBehaviour
             float mag = diff.magnitude;
             diff.Normalize();
             diff *= (agent.GetAwarenessRadius() - mag);
+            if (m_nearbyAgents[i].GetId() == agent.GetLeader().GetId())
+                diff *= 2.0f;
             dirSum += diff;
             count++;
         }
@@ -283,7 +291,7 @@ public class FlockingManager : MonoBehaviour
         finalDir.Normalize();
         Vector2 normalVel = agent.GetVelocity().normalized;
         vel = Vector2.Lerp(vel, finalDir, 0.1f);
-        return vel.normalized * 10.0f;
+        return vel.normalized * 2.0f;
     }
 
     public Vector2 Avoidance(FlockingAgent agent) 

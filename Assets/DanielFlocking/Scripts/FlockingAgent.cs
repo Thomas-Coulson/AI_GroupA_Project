@@ -5,6 +5,10 @@ using UnityEngine;
 public class FlockingAgent : MonoBehaviour
 {
     [SerializeField] float m_speed;
+    [SerializeField] float m_chaseSpeed;
+    [SerializeField] float m_flockSpeed;
+    [SerializeField] float m_speedRateOfChange;
+
     Vector2 m_velocity;
     Vector3 m_translatedVelocity;
     [SerializeField] float m_awarenessRadius;
@@ -84,6 +88,34 @@ public class FlockingAgent : MonoBehaviour
         {
             InitialiseWeightsAndRefs();
         }
+
+        if (m_leader != null) 
+        {
+            if (m_leader.GetFlockId() == m_flockId) 
+            {
+                m_speed -= m_speedRateOfChange * Time.deltaTime;
+
+                if (m_speed < m_flockSpeed) 
+                {
+                    m_speed = m_flockSpeed;
+                }
+            }
+            else 
+            {
+                m_speed += m_speedRateOfChange * Time.deltaTime;
+
+                if (m_speed > m_chaseSpeed) 
+                {
+                    m_speed = m_chaseSpeed;
+                }
+            }
+        }
+        else 
+        {
+            m_speed = m_flockSpeed;
+        }
+
+
         m_translatedVelocity.x = m_velocity.x;
         m_translatedVelocity.z = m_velocity.y;
         gameObject.transform.position += m_translatedVelocity * m_speed * Time.deltaTime;
