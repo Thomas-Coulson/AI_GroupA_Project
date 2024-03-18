@@ -186,13 +186,16 @@ public class FlockingManager : MonoBehaviour
 
         if (agent.GetFlockId() == agent.GetLeader().GetFlockId()) 
         {
-            velocitySum += agent.GetLeader().GetVelocity() * 5.0f;
+            velocitySum += agent.GetLeader().GetVelocity() * 3.0f;
             count++;
         }
 
         velocitySum /= count;
         velocitySum.Normalize();
-        vel = velocitySum;
+        float mag = vel.magnitude;
+        vel = Vector2.Lerp(vel, velocitySum, 0.1f);
+        vel.Normalize();
+        vel *= mag;
         return vel;
     }
 
@@ -341,7 +344,7 @@ public class FlockingManager : MonoBehaviour
             //average *= m_obstacleAvoidanceWeight;
             //Vector2 newVel = agent.GetVelocity() + average;
             //newVel.Normalize();
-            agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 200.0f;
+            agent.m_weights[FlockingAgent.DecisionTypes.E_AVOID_OBSTACLE] = 1000.0f;
             return average;
         }
 
